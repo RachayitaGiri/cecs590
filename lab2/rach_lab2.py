@@ -30,5 +30,26 @@ def main():
    #Split the data into training and test data using an 80-20 split
    x_train, x_test, y_train, y_test = train_test_split(data1[['x1', 'x2']], data1['y1'], test_size=0.2)
    print(len(x_train), len(x_test), len(y_train), len(y_test))
+   
+   model = build_model(x_train)
+   model.summary()
+
+
+#Function to build the model
+def build_model(x_train):
+  
+  #Sequential model using 2 densely connected layers and an o/p layer which returns 1 single, continuous value
+  model = keras.Sequential([
+    keras.layers.Dense(64, activation=tf.nn.relu, input_shape=(x_train.shape[1],)),
+    keras.layers.Dense(64, activation=tf.nn.relu),
+    keras.layers.Dense(1)
+  ])
+
+  optimizer = tf.train.RMSPropOptimizer(0.001)
+
+  model.compile(loss='mse',
+                optimizer=optimizer,
+                metrics=['mae'])
+  return model
 
 main()
