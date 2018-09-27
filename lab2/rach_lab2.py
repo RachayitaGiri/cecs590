@@ -8,21 +8,21 @@ import tensorflow as tf
 from tensorflow import keras
 
 
-fig = plt.figure(1)
-ax = fig.add_subplot(111, projection='3d')
+# fig = plt.figure(1)
+# ax = fig.add_subplot(111, projection='3d')
 
 #Function main()
 def main():
 
-   #Randomly generate x1 and x2, based on which, calculate y1 and y2
-   x1 = np.random.rand(1, 100) * 100
-   x2 = np.random.rand(1, 100) * 100
-   y1 = ((x1 - x2)*(x1 - x2))/len(x1[0])
-   y2 = np.sqrt((x1*x1 + x2*x2))
+   # #Randomly generate x1 and x2, based on which, calculate y1 and y2
+   # x1 = np.random.rand(1, 100) * 100
+   # x2 = np.random.rand(1, 100) * 100
+   # y1 = ((x1 - x2)*(x1 - x2))/len(x1[0])
+   # y2 = np.sqrt((x1*x1 + x2*x2))
 
-   #Write the arrays into a CSV where each column represents an array
-   df = pd.DataFrame({"x1" : x1[0], "x2" : x2[0], "y1" : y1[0], "y2" : y2[0]})
-   df.to_csv("mydata.csv", index=True)
+   # #Write the arrays into a CSV where each column represents an array
+   # df = pd.DataFrame({"x1" : x1[0], "x2" : x2[0], "y1" : y1[0], "y2" : y2[0]})
+   # df.to_csv("mydata.csv", index=True)
 
    #Read data from the CSV into a Pandas dataframe
    df = pd.read_csv('mydata.csv', index_col=0)
@@ -45,6 +45,9 @@ def main():
 
    # Store training stats
    history = model.fit(y_train, x_train, epochs=EPOCHS, validation_split=0.2, verbose=0, callbacks=[PrintDot()])
+
+   # Plotting the model's training progress stored in the 'history' object
+   plot_history(history)
 
 
 #Function to build the model
@@ -70,7 +73,18 @@ class PrintDot(keras.callbacks.Callback):
     if epoch % 100 == 0: print('')
     print('.', end='')
 
+def plot_history(history):
+  plt.figure()
+  plt.xlabel('Epoch')
+  plt.ylabel('Mean Abs Error [1000$]')
+  plt.plot(history.epoch, np.array(history.history['mean_absolute_error']),
+           label='Train Loss')
+  plt.plot(history.epoch, np.array(history.history['val_mean_absolute_error']),
+           label = 'Val loss')
+  plt.legend()
+  plt.ylim([0, 5])
+
+
 EPOCHS = 500
 
- 
 main()
