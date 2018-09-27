@@ -49,7 +49,7 @@ def build_model(y_train):
   
   #Sequential model using 2 densely connected layers and an o/p layer which returns 1 single, continuous value
   model = keras.Sequential([
-    keras.layers.Dense(64, activation=tf.nn.relu, input_shape=(y_train.shape[1],)),
+    keras.layers.Dense(64, activation=tf.nn.relu, input_shape=(y_train.shape[0],)),
     keras.layers.Dense(64, activation=tf.nn.relu),
     keras.layers.Dense(1)
   ])
