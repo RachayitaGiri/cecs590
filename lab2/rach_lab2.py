@@ -46,7 +46,7 @@ def main():
    # Store training stats
    history = model.fit(y_train, x_train, epochs=EPOCHS, validation_split=0.2, verbose=0, callbacks=[PrintDot()])
 
-   # Plotting the model's training progress stored in the 'history' object
+   # Plotting the model's training progress stored in the 'history' object no show
    plot_history(history)
 
 
