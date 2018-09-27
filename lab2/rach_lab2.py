@@ -31,7 +31,7 @@ def main():
    data2 = df[['y1', 'y2', 'x2']]		#selects all rows of the columns: y1, y2, x2
    
    #Split the data into training and test data using an 80-20 split
-   x_train, x_test, y_train, y_test = train_test_split(data1[['y1', 'y2']], data1['x1'], test_size=0.2)
+   y_train, y_test, x_train, x_test = train_test_split(data1[['y1', 'y2']], data1['x1'], test_size=0.2)
    print(len(x_train), len(x_test), len(y_train), len(y_test))
 
    #Normalizing the features using y1 and y2. Test Data is NOT used when calculating the mean and std
@@ -43,13 +43,16 @@ def main():
    model = build_model(y_train)
    model.summary()
 
+   # Store training stats
+   history = model.fit(y_train, x_train, epochs=EPOCHS, validation_split=0.2, verbose=0, callbacks=[PrintDot()])
+
 
 #Function to build the model
 def build_model(y_train):
   
   #Sequential model using 2 densely connected layers and an o/p layer which returns 1 single, continuous value
   model = keras.Sequential([
-    keras.layers.Dense(64, activation=tf.nn.relu, input_shape=(y_train.shape[0],)),
+    keras.layers.Dense(64, activation=tf.nn.relu, input_shape=(y_train.shape[1],)),
     keras.layers.Dense(64, activation=tf.nn.relu),
     keras.layers.Dense(1)
   ])
@@ -61,5 +64,13 @@ def build_model(y_train):
                 metrics=['mae'])
   return model
 
-   
+# Display training progress by printing a single dot for each completed epoch
+class PrintDot(keras.callbacks.Callback):
+  def on_epoch_end(self, epoch, logs):
+    if epoch % 100 == 0: print('')
+    print('.', end='')
+
+EPOCHS = 500
+
+ 
 main()
