@@ -33,7 +33,7 @@ def main():
    #Split the data into training and test data using an 80-20 split
    y_train, y_test, x_train, x_test = train_test_split(data1[['y1', 'y2']], data1['x1'], test_size=0.2)
    print(len(x_train), len(x_test), len(y_train), len(y_test))
-
+   print(x_test)
    #Normalizing the features using y1 and y2. Test Data is NOT used when calculating the mean and std
    mean = y_train.mean(axis=0)
    std = y_train.std(axis=0)
@@ -46,17 +46,34 @@ def main():
    # Store training stats
    history = model.fit(y_train, x_train, epochs=EPOCHS, validation_split=0.2, verbose=0, callbacks=[PrintDot()])
 
-   # Plotting the model's training progress stored in the 'history' object no show
-   plot_history(history)
+   # The patience parameter is the amount of epochs to check for improvement
+   #early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=20)
 
+   # Plotting the model's training progress stored in the 'history' object no show
+   #plot_history(history)
+
+   [loss, mae] = model.evaluate(y_test, x_test, verbose=0)
+
+   print("Testing set Mean Abs Error: ${:7.2f}".format(mae * 1000))
+
+   test_predictions = model.predict(y_test)
+   print(test_predictions)
+
+   plt.scatter(x_test, test_predictions)
+   plt.xlabel('Actual x1 values')
+   plt.ylabel('Predicted x1 values')
+   plt.axis('equal')
+   plt.xlim(plt.xlim())
+   plt.ylim(plt.ylim())
+   _ = plt.plot([-100, 100], [-100, 100])
 
 #Function to build the model
 def build_model(y_train):
   
   #Sequential model using 2 densely connected layers and an o/p layer which returns 1 single, continuous value
   model = keras.Sequential([
-    keras.layers.Dense(64, activation=tf.nn.relu, input_shape=(y_train.shape[1],)),
-    keras.layers.Dense(64, activation=tf.nn.relu),
+    keras.layers.Dense(32, activation=tf.nn.relu, input_shape=(y_train.shape[1],)),
+    keras.layers.Dense(32, activation=tf.nn.relu),
     keras.layers.Dense(1)
   ])
 
@@ -83,6 +100,7 @@ def plot_history(history):
            label = 'Val loss')
   plt.legend()
   plt.ylim([0, 5])
+  plt.show()
 
 
 EPOCHS = 500
