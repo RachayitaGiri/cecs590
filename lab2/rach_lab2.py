@@ -11,30 +11,32 @@ from tensorflow import keras
 # fig = plt.figure(1)
 # ax = fig.add_subplot(111, projection='3d')
 
-#Function main()
+# Function main()
 def main():
 
-   #Randomly generate x1 and x2, based on which, calculate y1 and y2
-   x1 = np.random.rand(1, 10000) * 100
-   x2 = np.random.rand(1, 10000) * 100
+   # Randomly generate x1 and x2, based on which, calculate y1 and y2
+   # rand produces a uniform distribution of probabilities
+   x1 = np.random.rand(1, 1000) * 100
+   x2 = np.random.rand(1, 1000) * 100
    y1 = ((x1 - x2)*(x1 - x2))/len(x1[0])
    y2 = np.sqrt((x1*x1 + x2*x2))
 
-   #Write the arrays into a CSV where each column represents an array
+   # Write the arrays into a CSV where each column represents an array
    df = pd.DataFrame({"x1" : x1[0], "x2" : x2[0], "y1" : y1[0], "y2" : y2[0]})
    df.to_csv("mydata.csv", index=True)
 
-   #Read data from the CSV into a Pandas dataframe
+   # Read data from the CSV into a Pandas dataframe
    df = pd.read_csv('mydata.csv', index_col=0)
 
-   data1 = df[['y1', 'y2', 'x1']]		#selects all rows of the columns: y1, y2, x1
-   data2 = df[['y1', 'y2', 'x2']]		#selects all rows of the columns: y1, y2, x2
+   data1 = df[['y1', 'y2', 'x1', 'x2']]		#selects all rows of the columns: y1, y2, x1
+   #data2 = df[['y1', 'y2', 'x2']]		#selects all rows of the columns: y1, y2, x2
    
-   #Split the data into training and test data using an 80-20 split
-   y_train, y_test, x_train, x_test = train_test_split(data1[['y1', 'y2']], data1['x1', 'x2'], test_size=0.2)
+   # Split the data into training and test data using an 80-20 split
+   y_train, y_test, x_train, x_test = train_test_split(data1[['y1', 'y2']], data1[['x1', 'x2']], test_size=0.2)
    print(len(x_train), len(x_test), len(y_train), len(y_test))
    print(x_test)
-   #Normalizing the features using y1 and y2. Test Data is NOT used when calculating the mean and std
+
+   # Normalizing the features using y1 and y2. Test Data is NOT used when calculating the mean and std
    mean = y_train.mean(axis=0)
    std = y_train.std(axis=0)
    y_train = (y_train - mean) / std
@@ -46,10 +48,10 @@ def main():
    # Store training stats
    history = model.fit(y_train, x_train, epochs=EPOCHS, validation_split=0.2, verbose=0, callbacks=[PrintDot()])
 
-   #The patience parameter is the amount of epochs to check for improvement
-   early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=20)
+   # The patience parameter is the amount of epochs to check for improvement
+   #early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=20)
 
-   #Plotting the model's training progress stored in the 'history' object no show
+   # Plotting the model's training progress stored in the 'history' object no show
    plot_history(history)
 
    [loss, mae] = model.evaluate(y_test, x_test, verbose=0)
@@ -59,9 +61,9 @@ def main():
    test_predictions = model.predict(y_test)
    print(test_predictions)
 
-   plt.scatter(x_test, test_predictions)
-   plt.xlabel('Actual x1 values')
-   plt.ylabel('Predicted x1 values')
+   plt.scatter(x_test, test_predictions, c=)
+   plt.xlabel('Actual x1 and x2 values')
+   plt.ylabel('Predicted x1 and x2 values')
    plt.axis('equal')
    plt.xlim(plt.xlim())
    plt.ylim(plt.ylim())
@@ -101,7 +103,7 @@ def plot_history(history):
   plt.plot(history.epoch, np.array(history.history['val_mean_absolute_error']),
            label = 'Val loss')
   plt.legend()
-  plt.ylim([0, 5])
+  #plt.ylim([0, 5])
   plt.show()
 
 
