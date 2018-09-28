@@ -61,7 +61,7 @@ def main():
    test_predictions = model.predict(y_test)
    print(test_predictions)
 
-   plt.scatter(x_test, test_predictions, c=)
+   plt.scatter(x_test, test_predictions)
    plt.xlabel('Actual x1 and x2 values')
    plt.ylabel('Predicted x1 and x2 values')
    plt.axis('equal')
@@ -76,8 +76,8 @@ def build_model(y_train):
   
   #Sequential model using 2 densely connected layers and an o/p layer which returns 1 single, continuous value
   model = keras.Sequential([
-    keras.layers.Dense(256, activation=tf.nn.relu, input_shape=(y_train.shape[1],)),
-    keras.layers.Dense(256, activation=tf.nn.relu),
+    keras.layers.Dense(20, activation=tf.nn.relu, input_shape=(y_train.shape[1],)),
+    keras.layers.Dense(10, activation=tf.nn.relu),
     keras.layers.Dense(2)
   ])
 
