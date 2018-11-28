@@ -1,125 +1,142 @@
-import numpy as np
+'''Train a simple deep CNN on the CIFAR10 small images dataset.
+It gets to 75% validation accuracy in 25 epochs, and 79% after 50 epochs.
+(it's still underfitting at that point, though).
+'''
+
+from __future__ import print_function
+import keras
+from keras.datasets import cifar100
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
-from keras.layers import Conv2D, MaxPooling2D, ZeroPadding2D
-from keras.layers import Activation, Dropout, Flatten, Dense
-from keras import backend as K
-from keras.regularizers import l2
-from keras.layers.normalization import BatchNormalization
-from keras import applications
+from keras.utils.data_utils import Sequence
+from keras.layers import Dense, Dropout, Activation, Flatten
+from keras.layers import Conv2D, MaxPooling2D, AveragePooling2D
+import os
 
-# dimensions of our images.
-img_width, img_height = 96, 96
-
-train_data_dir = 'CALTrain'
-validation_data_dir = 'CALTrain'
-nb_train_samples = 20
-nb_validation_samples = 20
+batch_size = 256
+num_classes = 100
 epochs = 50
-batch_size = 100
+data_augmentation = True
+num_predictions = 20
+save_dir = os.path.join(os.getcwd(), 'saved_models')
+model_name = 'keras_cifar10_trained_model.h5'
 
-if K.image_data_format() == 'channels_first':
-    input_shape = (3, img_width, img_height)
-else:
-    input_shape = (img_width, img_height, 3)
+# The data, split between train and test sets:
+(x_train, y_train), (x_test, y_test) = cifar100.load_data()
+print('x_train shape:', x_train.shape)
+print(x_train.shape[0], 'train samples')
+print(x_test.shape[0], 'test samples')
 
+# Convert class vectors to binary class matrices.
+y_train = keras.utils.to_categorical(y_train, num_classes)
+y_test = keras.utils.to_categorical(y_test, num_classes)
 
+model = Sequential()
+model.add(Conv2D(96, (3, 3), padding = "same",
+                 input_shape=x_train.shape[1:]))
+model.add(Activation('relu'))
+model.add(AveragePooling2D(pool_size=(2, 2), padding = "same"))
 
+model.add(Conv2D(64, (3, 3), padding = "same"))
+model.add(Activation('relu'))
+model.add(AveragePooling2D(pool_size=(2, 2)))
+model.add(Dropout(0.25))
 
-def baseline_model():
-    model = Sequential()
-    model.add(Conv2D(32, kernel_size=(5, 5), strides=(1, 1),
-                    activation='relu',
-                    input_shape=(80,80,3)))
-    model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
-    model.add(Conv2D(64, (5, 5), activation='relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Conv2D(128, (5, 5), activation='relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Flatten())
-    model.add(Dense(2000, activation='softmax'))
-    model.add(Dense(102, activation='sigmoid'))
-    #model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-    return model
+model.add(Conv2D(128, (3, 3)))
+model.add(Activation('relu'))
+model.add(AveragePooling2D(pool_size=(2, 2)))
+model.add(Dropout(0.25))
 
-def getAlexNet():
-    #1
-    model = Sequential()
-    # model.add(Conv2D(96, (11, 11), input_shape=input_shape))
-    # model.add(Activation('relu'))
-    # model.add(MaxPooling2D(pool_size=(2, 2)))
-    # #2
-    # model.add(Conv2D(256, (5, 5)))
-    # model.add(Activation('relu'))
-    # model.add(MaxPooling2D(pool_size=(2, 2)))
-    # #3
-    # model.add(ZeroPadding2D((1, 1)))
-    # model.add(Conv2D(512, (3, 3)))
-    # model.add(Activation('relu'))
-    # model.add(MaxPooling2D(pool_size=(2, 2)))
-    # #4
-    # model.add(ZeroPadding2D((1, 1)))
-    model.add(Conv2D(32, (3, 3), input_shape=input_shape))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    #5
-    model.add(Conv2D(1024, (3, 3)))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    #6
-    model.add(Flatten())
-    model.add(Dense(3072))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.5))
-    #7
-    model.add(Dense(4096))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.5))
-    #8
-    model.add(Dense(102))
-    model.add(Activation('sigmoid'))
-    return model
+# model.add(Conv2D(256, (3, 3), padding='same'))
+# model.add(Activation('relu'))
+# model.add(AveragePooling2D(pool_size=(2, 2)))
+# model.add(Dropout(0.25))
 
+model.add(Flatten())
+# model.add(Dense(512))
+# model.add(Activation('relu'))
+# model.add(Dropout(0.5))
 
-model = getAlexNet() 
-model.summary()
+# model.add(Dense(1000))
+# model.add(Activation('relu'))
+# model.add(Dropout(0.5))
 
-# model = baseline_model()
-# model.summary()
+model.add(Dense(num_classes))
+model.add(Activation('softmax'))
 
+# initiate RMSprop optimizer
+opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)
 
-
-model.compile(loss='binary_crossentropy',
-              optimizer='SGD',
+# Let's train the model using RMSprop
+model.compile(loss='categorical_crossentropy',
+              optimizer="adam",
               metrics=['accuracy'])
 
-# this is the augmentation configuration we will use for training
-train_datagen = ImageDataGenerator()
+x_train = x_train.astype('float32')
+x_test = x_test.astype('float32')
+x_train /= 255
+x_test /= 255
 
-# this is the augmentation configuration we will use for testing:
-# only rescaling
-test_datagen = ImageDataGenerator()
-datagen = ImageDataGenerator()
-test_datagen = datagen
+if not data_augmentation:
+    print('Not using data augmentation.')
+    model.fit(x_train, y_train,
+              batch_size=batch_size,
+              epochs=epochs,
+              validation_data=(x_test, y_test),
+              shuffle=True)
+else:
+    print('Using real-time data augmentation.')
+    # This will do preprocessing and realtime data augmentation:
+    datagen = ImageDataGenerator(
+        featurewise_center=False,  # set input mean to 0 over the dataset
+        samplewise_center=False,  # set each sample mean to 0
+        featurewise_std_normalization=False,  # divide inputs by std of the dataset
+        samplewise_std_normalization=False,  # divide each input by its std
+        zca_whitening=False,  # apply ZCA whitening
+        zca_epsilon=1e-06,  # epsilon for ZCA whitening
+        rotation_range=0,  # randomly rotate images in the range (degrees, 0 to 180)
+        # randomly shift images horizontally (fraction of total width)
+        width_shift_range=0.1,
+        # randomly shift images vertically (fraction of total height)
+        height_shift_range=0.1,
+        shear_range=0.,  # set range for random shear
+        zoom_range=0.,  # set range for random zoom
+        channel_shift_range=0.,  # set range for random channel shifts
+        # set mode for filling points outside the input boundaries
+        fill_mode='nearest',
+        cval=0.,  # value used for fill_mode = "constant"
+        horizontal_flip=True,  # randomly flip images
+        vertical_flip=False,  # randomly flip images
+        # set rescaling factor (applied before any other transformation)
+        rescale=None,
+        # set function that will be applied on each input
+        preprocessing_function=None,
+        # image data format, either "channels_first" or "channels_last"
+        data_format=None,
+        # fraction of images reserved for validation (strictly between 0 and 1)
+        validation_split=0.0)
 
-train_generator = train_datagen.flow_from_directory(
-    train_data_dir,
-    target_size=(img_width, img_height),
-    batch_size=batch_size,
-    class_mode='categorical')
+    # Compute quantities required for feature-wise normalization
+    # (std, mean, and principal components if ZCA whitening is applied).
+    datagen.fit(x_train)
 
-validation_generator = test_datagen.flow_from_directory(
-    validation_data_dir,
-    target_size=(img_width, img_height),
-    batch_size=batch_size,
-    class_mode='categorical')
+    # Fit the model on the batches generated by datagen.flow().
+    model.summary()
+    model.fit_generator(datagen.flow(x_train, y_train,
+                                     batch_size=batch_size),
+                        epochs=epochs,
+                        validation_data=(x_test, y_test),
+                        workers=4,
+                        steps_per_epoch=1000)
 
-model.fit_generator(
-    train_generator,
-    steps_per_epoch=nb_train_samples ,
-    epochs=epochs,
-    validation_data=None,
-    validation_steps=nb_validation_samples)
+# Save model and weights
+if not os.path.isdir(save_dir):
+    os.makedirs(save_dir)
+model_path = os.path.join(save_dir, model_name)
+model.save(model_path)
+print('Saved trained model at %s ' % model_path)
 
-# save_bottlebeck_features()
-# train_top_model()
+# Score trained model.
+scores = model.evaluate(x_test, y_test, verbose=1)
+print('Test loss:', scores[0])
+print('Test accuracy:', scores[1])
