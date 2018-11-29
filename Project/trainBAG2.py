@@ -6,7 +6,7 @@ from keras.layers import Activation, Dropout, Flatten, Dense
 from keras import backend as K
 from keras.regularizers import l2
 from keras.layers.normalization import BatchNormalization
-from keras import applications
+from keras.applications import MobileNet
 
 # dimensions of our images.
 img_width, img_height = 224, 224
@@ -98,7 +98,10 @@ def getAlexNet():
 # model = getAlexNet() 
 # model.summary()
 
-model = baseline_model()
+# model = baseline_model()
+# model.summary()
+
+model = MobileNet(classes = 257, weights = None)
 model.summary()
 
 
