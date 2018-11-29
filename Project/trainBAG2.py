@@ -104,6 +104,19 @@ def getAlexNet():
 model = MobileNet(classes = 257, weights = None)
 model.summary()
 
+x1 = model.layers.pop()
+x2 = model.layers.pop()
+x3 = model.layers.pop()
+for i in range(12):
+    model.layers.pop()
+
+model.layers.append(x3)
+model.layers.append(x2)
+model.layers.append(x1)
+
+model.summary()
+
+
 
 
 model.compile(loss= 'categorical_crossentropy',
@@ -136,11 +149,11 @@ validation_generator = test_datagen.flow_from_directory(
 # print(len(train_generator[1][1][0]))
 # print(train_generator[1][1][0])
 
-model.fit_generator(
-    generator= train_generator,
-    steps_per_epoch=nb_train_samples ,
-    epochs=epochs,
-    validation_data=validation_generator)
+# model.fit_generator(
+#     generator= train_generator,
+#     steps_per_epoch=nb_train_samples ,
+#     epochs=epochs,
+#     validation_data=validation_generator)
 
 # save_bottlebeck_features()
 # train_top_model()
