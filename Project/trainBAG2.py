@@ -13,10 +13,10 @@ img_width, img_height = 224, 224
 
 train_data_dir = '256_ObjectCategories'
 validation_data_dir = '256_ObjectCategories'
-nb_train_samples = 100
-nb_validation_samples = 10
+nb_train_samples = 1000
+nb_validation_samples = 100
 epochs = 50
-batch_size = 10
+batch_size = 200
 
 if K.image_data_format() == 'channels_first':
     input_shape = (3, img_width, img_height)
