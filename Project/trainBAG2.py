@@ -17,6 +17,7 @@ nb_train_samples = 1000
 nb_validation_samples = 100
 epochs = 50
 batch_size = 200
+train_batch = 200
 
 if K.image_data_format() == 'channels_first':
     input_shape = (3, img_width, img_height)
@@ -139,15 +140,17 @@ train_generator = train_datagen.flow_from_directory(
     train_data_dir,
     color_mode = "rgb",
     target_size=(img_width, img_height),
-    batch_size= 32,
+    batch_size= batch_size,
     class_mode='categorical',
     shuffle=True)
 
 validation_generator = test_datagen.flow_from_directory(
-    validation_data_dir,
+    train_data_dir,
+    color_mode = "rgb",
     target_size=(img_width, img_height),
-    batch_size=batch_size,
-    class_mode='categorical')
+    batch_size= train_batch,
+    class_mode='categorical',
+    shuffle=True)
 
 # print(len(train_generator[1][1][0]))
 # print(train_generator[1][1][0])
