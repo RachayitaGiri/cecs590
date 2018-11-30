@@ -9,15 +9,21 @@ def resize(imageName):
         basewidth = 224
         image = imageName
         img = Image.open(image)
+        img.verify()
+        img.close()
+
+        img = Image.open(image)
         img = img.resize((basewidth, basewidth), PIL.Image.ANTIALIAS)
-        img.save(imageName)
+        img.save(imageName, quality=90)
+        img.close()
         #os.rename(imageName, str(newName) + ".jpeg") 
     except:
+        print("corrupt " + str(imageName))
         os.remove(imageName)
 
 def main():
     # Open a file
-    dirName = "trainSet"
+    dirName = "256_ObjectCategories"
 
     os.chdir(dirName)
     dirs = os.listdir(os.getcwd())
@@ -26,9 +32,9 @@ def main():
         if(file != ".DS_Store"): 
             os.chdir(file)
             allPictures = os.listdir(os.getcwd())
-            
+            print(file)
             for image in allPictures:
-                print(image)
+                #print(image)
                 resize(image)
             allPictures = os.listdir(os.getcwd())
             count = 1
